@@ -1,0 +1,1 @@
+# Product, FreshProduct 등 도메인 클래스 정의
