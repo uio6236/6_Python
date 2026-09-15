@@ -1,19 +1,51 @@
 """
     실습용 사이트에서
-        종목 메뉴 페이지(SSR)의 섹터를 "IT 서비스"로 검색한 결과 데이터를 추출
+        종목 메뉴 페이지(SSR)의 섹터를 "IT서비스"로 검색한 결과 데이터를 추출
 
-    - 요청 주소: ??
-    TODO: 오늘(09/15) 18시까지 이메일로 제출
+    - 요청 주소:
+      https://kh-lab.rockua.ai.kr/stocks?sector=S08
 """
-import requests, json, csv
-from bs4 import BeautifulSoup
+
+import requests
 
 from config import BASE, TIMEOUT, HEADERS
-from parsers import get_text, parse_stocks
+from parsers import parse_stocks
 
-resp = requests.get(f"{BASE}/stocks", headers=HEADERS, timeout=TIMEOUT)
-resp.raise_for_status()    # 응답 코드가 200이 아니면 예외 발생
+params = {"sector": "S08"}
+resp = requests.get(
+    f"{BASE}/stocks",
+    params=params,
+    headers=HEADERS,
+    timeout=TIMEOUT
+)
 
-html = resp.text
+resp.raise_for_status()
+print(f"요청 주소: {resp.url}")
+print(f"응답 코드: {resp.status_code}")
+print("=" * 80)
 
-soup = BeautifulSoup(html, 'lxml')
+stocks = parse_stocks(resp.text)
+
+print(f"추출된 종목 수: {len(stocks)}개")
+print("=" * 80)
+
+print(
+    f"{'코드':<8}"
+    f"{'종목명':<16}"
+    f"{'섹터':<12}"
+    f"{'현재가':>12}"
+    f"{'등락률':>10}"
+    f"{'거래량':>14}"
+    f"{'시장':>12}"
+)
+
+for stock in stocks:
+    print(
+        f"{stock['code']:<8}"
+        f"{stock['name']:<16}"
+        f"{stock['sector']:<12}"
+        f"{stock['price']:>12,}"
+        f"{stock['rate']:>10}"
+        f"{stock['volume']:>14,}"
+        f"{stock['market']:>12}"
+    )
