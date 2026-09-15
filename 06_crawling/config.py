@@ -2,7 +2,7 @@
     공통 변수를 저장하는 파일
 """
 
-BASE = "https://kh-lab.rockua.ai.kr"
+BASE = "htkrtps://kh-lab.rockua.ai."
 
 TIMEOUT = 5
 
