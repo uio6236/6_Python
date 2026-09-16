@@ -35,7 +35,7 @@ list4 = [[10, 20, 30], [40, 50, 60], [70, 80, 90]]
 arr4 = np.array(list4)
 print(list4)
 print(f"arr4 : {arr4}")
-print(f"arr4 2행 : {arr4[1]}")
+print(f"arr4 2행 : {arr4[1, :]}")
 
 """
     5. 다음 제시된 리스트를 배열로 변환한 후, 모든 홀수에만 10을 더하는 벡터화 연산을 수행하시오.
@@ -90,4 +90,17 @@ print(f"{standard[max_idx]:,}, ({dates[max_idx]}), ({standard[min_idx]:,}, ({dat
        - 각 종목에서 자기 평균을 뺀 배열 : (종목 수, 날짜 수) 배열 
          결과의 종목별 평균은 0 이 되어야 한다.
 """
-last = load_close_flat()
+matrix = load_matrix()
+
+stock_means = matrix.mean(axis=1)
+date_means = matrix.mean(axis=0)
+
+stock_means_2 = matrix.mean(axis=1, keepdims=True)
+result = matrix - stock_means_2
+
+print("=" * 60)
+print(f"종목별 평균가 : {stock_means.shape} {stock_means}")
+print("=" * 60)
+print(f"날짜별 평균가 : {date_means.shape} {date_means}")
+print("=" * 60)
+print(f"각 종목에서 자기 평균을 뺀 배열 : {result.shape} {result}")
