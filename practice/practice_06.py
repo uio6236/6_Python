@@ -190,6 +190,54 @@ def assignment_4(data):
     plt.tight_layout()
     plt.show()
 
+def assignment_2_3d(data):
+    """과제 2의 추가 시각화: 체류·지출·관광객 규모 3D 비교"""
+
+    # 세 지표 중 결측치가 있는 행 제외
+    plot_data = data.dropna(
+        subset=[
+            "평균체류일수",
+            "1인당평균지출액",
+            "입출국자수"
+        ]
+    ).copy()
+
+    # 그래프의 숫자를 읽기 쉽게 단위 변경
+    plot_data["지출액_만원"] = (
+        plot_data["1인당평균지출액"] / 10_000
+    )
+
+    plot_data["입출국자수_만명"] = (
+        plot_data["입출국자수"] / 10_000
+    )
+
+    # 3D 그래프 영역 생성
+    fig = plt.figure(figsize=(12, 8))
+
+    ax = fig.add_subplot(
+        111,
+        projection="3d"
+    )
+
+    # 여행구분별로 나눠 서로 다른 색상으로 표시
+    for name, group in plot_data.groupby("여행구분"):
+        ax.scatter(
+            group["평균체류일수"],
+            group["지출액_만원"],
+            group["입출국자수_만명"],
+            s=35,
+            alpha=0.65,
+            label=name
+        )
+
+    ax.set_title("체류기간·지출액·관광객 규모 3D 비교")
+    ax.set_xlabel("평균 체류일수")
+    ax.set_ylabel("1인당 평균 지출액(만원)")
+    ax.set_zlabel("입출국자 수(만 명)")
+    ax.legend()
+
+    fig.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     # generate_data.py에서 만든 business_data.csv를 불러와 사용합니다.
@@ -198,4 +246,5 @@ if __name__ == "__main__":
     # assignment_1(df)
     # assignment_2(df)
     # assignment_3(df)
-    assignment_4(df)
+    # assignment_4(df)
+    assignment_2_3d(df)
