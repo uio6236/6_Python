@@ -29,7 +29,7 @@ def count_rows():
         return cur.fetchone()[0]
 
 INSERT_SQL = f"""
-    INSERT INTO daily_price (code, "date", open, high, low, close, volume, "change", changeRate)
+    INSERT INTO daily_price (code, "date", open, high, low, close, volume, "change", "changeRate")
     VALUES ({','.join([':%d' % i for i in range(1, 10)])})
 """
 
@@ -57,3 +57,35 @@ start = time.perf_counter()
 
 with conn.cursor() as cur:
     cur.executemany(INSERT_SQL, rows)
+conn.commit()
+t2 = time.perf_counter() - start
+
+results.append(("2. executemany", t2, count_rows()))
+
+# 3. to_sql -> 내부적으로 executemany를 사용하여 적재.
+"""
+    df.to_sql(테이블명, engine, if_exists="append", index=False)
+    - if_exists : "append" - 데이터 추가 / "replace" - 테이블을 지우고 새로 만듬 / "fail" - 실패처리
+    - INSERT 문을 작성하지 않아도 됨!
+"""
+"""
+reset_table()
+start = time.perf_counter()
+
+sample.to_sql("daily_price", engine, if_exists="append", index=False)
+t3 = time.perf_counter() - start
+
+results.append(("3. to_sql", t3, count_rows()))
+
+# 4. to_sql , method="multi" -> 원하는 개수만큼 쪼개서(청킹) 데이터를 적재
+reset_table()
+start = time.perf_counter()
+
+sample.to_sql("daily_price", engine, if_exists="append", index=False,
+              method="multi", chunksize=500)
+t4 = time.perf_counter() - start
+
+results.append(("4. to_sql", t4, count_rows()))
+"""
+for name, t, n in results:
+    print(f"{name:<20} {t*1000:>8.0}ms {n:>8,}")
