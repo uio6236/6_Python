@@ -114,11 +114,26 @@ def clean_prices(records, logger):
     # 8. OHLC 정합성 - clip 
     # clip(Lower=..., upper=...)
     # => Lower 미만이면 Lower값으로, upper 초과면 upper값으로 변경
+    logger.info(f"OHLC 정합성 처리 전 (종가 결측: {df['close'].isna().sum():,})")
+    df["close"] = df["close"].clip(lower=df["low"], upper=df["high"])
+    logger.info(f"OHLC 정합성 처리 후 (종가 결측: {df['close'].isna().sum():,})")
     
-
     # 9. 소수점 -> 정수 (반올림)
+    # OHLC => 실수 타입으로 처리(결측, 보간, ...)
+    # DB(Oracle)에 해당 컬럼들이 NUMBER(20) 정수 형태이므로 반올림 처리
+    n_round = int((df[OHLC] % 1 != 0).sum().sum())
+    for col in OHLC:
+        df[col] = df[col].round(0)
+    logger.info(f"정수 반올림 처리 {len(df):,}행 (처리 대상: {n_round:,}개)")
 
     # 10. 등락, 등락률 재계산
+    # 종가 보간, 반올림 처리를 하면서 데이터가 변경되었으므로 원본의 change, changeRate 를 그대로 사용할 수 없음!
+    prev =  df.groupby("code")["close"].shift(1) # 종목별 직전(전일) 종가를 구해줌.
+
+    df["change"] = (df["close"] - prev).round(0)
+    df["changeRate"] = ((df["close"] - prev) / prev * 100).round(2)
+
+    return df
 
 def validate(df, logger):
     """
@@ -132,4 +147,19 @@ def validate(df, logger):
         - OHLC 논리 정합성 : 저가 <= 시가,종가 <= 고가
         - 거래량이 음수가 아닌지
     """
-    pass
+    checks = [
+        ("날짜 타입 (datetime)", pd.api.types.is_datetime64_any_dtype(df["date"])),
+        ("중복 데이터 (0 / code, date)", df.duplicated(subset=["code", "date"]).sum() == 0),
+        ("종가 데이터 결측 (0)", df["close"].isna().sum() == 0),
+        ("OHLC 정합성", bool(((df["low"] <= df["close"]) & (df["close"] <= df["high"])).all())),
+        ("거래량 음수 (0)", bool((df["colume"].dropna() >= 0).all()))
+    ]
+
+    # 실패한 항목의 이름(첫번째)만 리스트로 저장
+    failed = [n for n, ok in checks if not ok]
+    for name, ok in checks:
+        logger.info(f"{'OK' if ok else 'FAIL'} {name}")
+
+    if failed:
+        raise ValueError(f"검증 실패: {failed}")
+    return True
