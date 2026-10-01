@@ -12,7 +12,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 # titanic.py가 들어 있는 폴더
 BASE_DIR = Path(__file__).resolve().parent
 
