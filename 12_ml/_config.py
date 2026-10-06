@@ -1,11 +1,33 @@
-﻿code,name,companyCount,avgOperatingMargin,avgNetMargin
-S01,금융,18,0.28,0.22
-S02,전기전자,16,0.12,0.09
-S03,화학,12,0.09,0.06
-S04,운수장비,12,0.07,0.05
-S05,유통,12,0.04,0.03
-S06,건설,10,0.06,0.04
-S07,바이오,12,0.18,0.14
-S08,IT서비스,14,0.15,0.12
-S09,에너지,8,0.10,0.07
-S10,식품,6,0.07,0.05
+﻿"""
+    공통 항목 설정
+"""
+import os
+
+BASE_DIR = os.path.dirname( os.path.abspath(__file__) )
+# ~/12_ml
+DATA_DIR = os.path.join(BASE_DIR, "data")
+# ~/12_ml/data
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+# ~/12_ml/models
+
+BASE_URL = "https://kh-lab.rockua.ai.kr"
+
+ENCODING = "utf-8-sig"
+
+def path(name):
+    """ data 폴더 안의 파일 경로 반환 """
+    return os.path.join(DATA_DIR, name)
+
+def prices_path():
+    """ 일별 시세 데이터(prices.csv) 파일 경로 또는 URL 반환 """
+    local = path("prices.csv")
+
+    if os.path.exists(local):
+        return local
+
+    return f"{BASE_URL}/datasets/prices.csv"
+
+def model_path(name="model_bundle.pkl"):
+    """ models 폴더 안의 파일 경로 반환 """
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    return os.path.join(MODEL_DIR, name)
