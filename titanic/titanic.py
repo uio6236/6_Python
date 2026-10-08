@@ -31,15 +31,16 @@ plt.rcParams["axes.unicode_minus"] = False
 # pandas를 사용하여 train.csv 파일 데이터를 불러와
 # DataFrame으로 저장하시오.
 # ============================================================
-
-
+print("\n\n1번")
+df = pd.read_csv(BASE_DIR / "train.csv")
+print(f"행 열 개수: {df.shape}")
 
 # ============================================================
 # 2번
 # 저장된 데이터에서 상위 5개 행을 출력하시오.
 # ============================================================
-
-
+print("\n\n2번")
+print(f"{df.head()}")
 
 # ============================================================
 # 3번
@@ -50,16 +51,21 @@ plt.rcParams["axes.unicode_minus"] = False
 # - 결측치가 존재하는 열과 결측 개수
 # - dtype이 예상과 다르거나 주의가 필요한 열
 # ============================================================
+print("\n\n3번")
+df.info()
 
-
+# Age 177개, Cabin 687개, Embarked 2개
+# Age가 int가 아닌 float64이라 주의
 
 # ============================================================
 # 4번
 # Age(나이), Fare(요금) 열의
 # 평균값, 최솟값, 최댓값을 구하시오.
 # ============================================================
+print("\n\n4번")
+summary = df[["Age", "Fare"]].agg(["mean", "min", "max"])
 
-
+print(summary.round(2))
 
 # ============================================================
 # 5번
@@ -68,23 +74,30 @@ plt.rcParams["axes.unicode_minus"] = False
 # 생존자 : Survived = 1
 # 사망자 : Survived = 0
 # ============================================================
+print("\n\n5번")
+survived_count = (df["Survived"] == 1).sum()
+dead_count = (df["Survived"] == 0).sum()
 
-
+print(f"생존자: {survived_count}명")
+print(f"사망자: {dead_count}명")
 
 # ============================================================
 # 6번
 # 객실 등급(Pclass)별로 탑승객이 몇 명인지 계산하시오.
 # ============================================================
-
-
+print("\n\n6번")
+print(df["Pclass"].value_counts().sort_index())
 
 # ============================================================
 # 7번
 # 나이가 50세 이상인 탑승객만 추출하여
 # 새로운 데이터프레임을 만드시오.
 # ============================================================
+print("\n\n7번")
+age_50_over = df[df["Age"] >= 50].copy()
 
-
+print(age_50_over)
+print(f"50세 이상 승객 데이터프레임 수 확인: {len(age_50_over)}")
 
 # ============================================================
 # 8번
@@ -104,16 +117,29 @@ plt.rcParams["axes.unicode_minus"] = False
 # pd.cut() 또는 조건식(if-else / np.where)을
 # 자유롭게 사용해도 됩니다.
 # ============================================================
+import numpy as np
+print("\n\n8번")
+df["AgeGroup"] = np.where(
+    df["Age"].isna(), "미확인",
+    np.where(df["Age"] < 10, "아동",
+    np.where(df["Age"] < 20, "10대",
+    np.where(df["Age"] < 30, "20대",
+    np.where(df["Age"] < 40, "30대",
+    np.where(df["Age"] < 50, "40대",
+    np.where(df["Age"] < 60, "50대", "60대 이상")
+    ))))))
 
-
+print(df[["Age", "AgeGroup"]].head())
 
 # ============================================================
 # 9번
 # 성별(Sex)과 객실 등급(Pclass)을 기준으로 그룹화하여
 # 각각의 평균 생존율을 계산하시오.
 # ============================================================
+print("\n\n9번")
+survival_by_sex_class = df.groupby(["Sex", "Pclass"])["Survived"].mean() * 100
 
-
+print(survival_by_sex_class.round(2))
 
 # ============================================================
 # 10번
@@ -121,16 +147,28 @@ plt.rcParams["axes.unicode_minus"] = False
 #
 # 8번에서 생성한 AgeGroup 열을 기준으로 그룹화하여 계산하시오.
 # ============================================================
+print("\n\n10번")
+survival_by_age = df.groupby("AgeGroup")["Survived"].mean() * 100
 
-
+print(survival_by_age.round(2))
 
 # ============================================================
 # 11번
 # 각 열에 존재하는 결측치(NaN)의 총 개수와
 # 전체 데이터 대비 비율을 계산하여 내림차순으로 출력하시오.
 # ============================================================
+print("\n\n11번")
+missing_count = df.isna().sum()
+missing_ratio = missing_count / len(df) * 100
 
+missing_table = pd.DataFrame({
+    "결측 개수": missing_count,
+    "결측 비율(%)": missing_ratio
+})
 
+missing_table = missing_table.sort_values("결측 개수", ascending=False)
+
+print(missing_table.round(2))
 
 # ============================================================
 # 12번
@@ -139,24 +177,38 @@ plt.rcParams["axes.unicode_minus"] = False
 #
 # map(), replace(), apply() 중 편한 방식을 사용해도 됩니다.
 # ============================================================
+print("\n\n12번")
+df["Gender_Encoded"] = df["Sex"].map({
+    "male": 0,
+    "female": 1
+})
 
-
+print(df[["Sex", "Gender_Encoded"]].head())
 
 # ============================================================
 # 13번
 # 탑승지(Embarked)별로 승객이 지불한 요금(Fare)의
 # 평균을 계산하시오.
 # ============================================================
+print("\n\n13번")
+fare_by_embarked = df.groupby("Embarked")["Fare"].mean()
 
-
+print(fare_by_embarked.round(2))
 
 # ============================================================
 # 14번
 # Pclass를 인덱스로, Sex를 컬럼으로,
 # 값으로 Fare의 평균을 사용하여 피벗 테이블을 생성하시오.
 # ============================================================
+print("\n\n14번")
+fare_pivot = df.pivot_table(
+    index="Pclass",
+    columns="Sex",
+    values="Fare",
+    aggfunc="mean"
+)
 
-
+print(fare_pivot.round(2))
 
 # ============================================================
 # 15번
@@ -164,8 +216,10 @@ plt.rcParams["axes.unicode_minus"] = False
 # FamilySize 열을 추가하고,
 # 이 열의 요약 통계를 확인하시오.
 # ============================================================
+print("\n\n15번")
+df["FamilySize"] = df["SibSp"] + df["Parch"]
 
-
+print(df["FamilySize"].describe().round(2))
 
 # ============================================================
 # 16번
@@ -179,8 +233,16 @@ plt.rcParams["axes.unicode_minus"] = False
 #
 # 성(Last name) 뒤에 오는 호칭을 추출한다.
 # ============================================================
+print("\n\n16번")
+def get_title(name):
+    after_comma = name.split(",")[1]
+    title = after_comma.split(".")[0]
+    return title.strip()
 
 
+df["Title"] = df["Name"].map(get_title)
+
+print(df["Title"].value_counts().head(5))
 
 # ============================================================
 # 17번
@@ -194,8 +256,16 @@ plt.rcParams["axes.unicode_minus"] = False
 # groupby().agg()의 Named Aggregation을 활용하면
 # 집계 결과 열 이름을 직접 지정할 수 있다.
 # ============================================================
+print("\n\n17번")
+title_summary = df.groupby("Title").agg(
+    승객수=("PassengerId", "count"),
+    평균나이=("Age", "mean"),
+    평균생존율=("Survived", "mean")
+)
 
+title_summary["평균생존율"] = title_summary["평균생존율"] * 100
 
+print(title_summary.round(2))
 
 # ============================================================
 # 18번
@@ -213,8 +283,39 @@ plt.rcParams["axes.unicode_minus"] = False
 # 결과를 화면에 출력하지 않고
 # 이미지 파일로 저장하시오. (savefig 사용)
 # ============================================================
+print("\n\n18번")
+survived_age = df.loc[df["Survived"] == 1, "Age"].dropna()
+dead_age = df.loc[df["Survived"] == 0, "Age"].dropna()
 
+fig, ax = plt.subplots(figsize=(10, 5))
 
+bins = list(range(0, 86, 5))
+
+ax.hist(
+    dead_age,
+    bins=bins,
+    alpha=0.5,
+    color="indianred",
+    label="사망"
+)
+
+ax.hist(
+    survived_age,
+    bins=bins,
+    alpha=0.5,
+    color="steelblue",
+    label="생존"
+)
+
+ax.set_title("생존 여부에 따른 나이 분포")
+ax.set_xlabel("나이")
+ax.set_ylabel("승객 수")
+ax.legend()
+fig.tight_layout()
+fig.savefig(BASE_DIR / "18_age_distribution.png", dpi=120)
+plt.close(fig)
+
+print("18_age_distribution.png 저장 완료")
 
 # ============================================================
 # 19번
@@ -233,8 +334,19 @@ plt.rcParams["axes.unicode_minus"] = False
 # 반드시 16번 완료 후 진행할 것.
 # Title 열이 존재해야 그룹 기준으로 사용할 수 있다.
 # ============================================================
+print("\n\n19번")
+before_missing = df["Age"].isna().sum()
 
+group_median = (
+    df.groupby(["Title", "Pclass"])["Age"].transform("median")
+)
 
+df["Age"] = df["Age"].fillna(group_median)
+
+after_missing = df["Age"].isna().sum()
+
+print(f"처리 전 결측 개수: {before_missing}")
+print(f"처리 후 결측 개수: {after_missing}")
 
 # ============================================================
 # 20번
@@ -252,3 +364,28 @@ plt.rcParams["axes.unicode_minus"] = False
 # 결과를 화면에 출력하지 않고
 # 이미지 파일로 저장하시오. (savefig 사용)
 # ============================================================
+print("\n\n20번")
+numeric_columns = ["Survived", "Pclass", "Age", "SibSp", "Parch", "Fare"]
+corr = df[numeric_columns].corr()
+
+print(corr.round(2))
+
+fig, ax = plt.subplots(figsize=(9, 7))
+
+sns.heatmap(
+    corr,
+    annot=True,
+    fmt=".2f",
+    cmap="coolwarm",
+    center=0,
+    vmin=-1,
+    vmax=1,
+    ax=ax
+)
+
+ax.set_title("타이타닉 수치형 변수 간 상관관계")
+fig.tight_layout()
+fig.savefig(BASE_DIR / "20_correlation_heatmap.png", dpi=120)
+plt.close(fig)
+
+print("20_correlation_heatmap.png 저장 완료")
